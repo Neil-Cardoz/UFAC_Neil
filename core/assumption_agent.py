@@ -1,14 +1,30 @@
 # File: core/assumption_agent.py
 import json
+import logging
 from .llm_utils import run_llm_council, aggregate_list_responses, calculate_consensus
+from data.rag_pipeline import get_retriever
+
+logger = logging.getLogger(__name__)
 
 async def detect_assumptions(user_data: dict) -> dict:
+    # Get RAG context (cached retriever)
+    try:
+        retriever = get_retriever()
+        rag_docs = retriever.invoke("PM-KISAN assumptions eligibility land aadhaar farmer requirements")
+        rag_context = "\n".join([d.page_content for d in rag_docs])
+    except Exception as e:
+        logger.warning(f"RAG retrieval failed: {e}. Using empty context.")
+        rag_context = ""
+    
     prompt = f"""You are the Assumption Detection Agent for PM-KISAN eligibility.
 
 Your task: Identify implicit assumptions being made based on missing data.
 - List assumptions that could affect eligibility
 - Be specific about what is being assumed
 - Focus on PM-KISAN relevant assumptions
+
+Official guidelines context:
+{rag_context}
 
 User data: {json.dumps(user_data)}
 

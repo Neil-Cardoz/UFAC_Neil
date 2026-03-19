@@ -10,17 +10,56 @@ from pydantic import BaseModel
 from core.llm_utils import init_gemini
 from core.ufac_engine import run_ufac
 from core.schema import UFACResponse
+from data.rag_pipeline import get_retriever, get_vectorstore_status
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup: validate env and initialize Gemini. Shutdown: cleanup."""
-    logger.info("Starting UFAC Engine — initializing Gemini...")
-    init_gemini()  # Fails fast at startup if API key missing
+    """Startup: Initialize Groq API and RAG pipeline. Shutdown: cleanup."""
+    logger.info("="*60)
+    logger.info("🚀 Starting UFAC Engine v2.0...")
+    logger.info("="*60)
+    
+    # Initialize Groq API
+    try:
+        init_gemini()
+        logger.info("✅ Groq API initialized")
+    except Exception as e:
+        logger.error(f"❌ Failed to initialize Groq API: {e}")
+        raise
+    
+    # Initialize RAG pipeline
+    rag_status = {"initialized": False, "error": None}
+    try:
+        logger.info("Initializing RAG pipeline...")
+        retriever = get_retriever()
+        status = get_vectorstore_status()
+        
+        if status.get("collection_count", 0) == 0:
+            logger.warning("⚠️  RAG initialized but no chunks found")
+            logger.info("Please run: python setup_rag.py")
+            rag_status["warning"] = "No chunks indexed"
+        else:
+            logger.info(f"✅ RAG pipeline ready: {status['collection_count']} chunks indexed")
+            rag_status["initialized"] = True
+            
+    except Exception as e:
+        logger.error(f"⚠️  RAG pipeline initialization failed: {e}")
+        logger.info("Continuing without RAG (using hardcoded rules)")
+        rag_status["error"] = str(e)
+    
+    logger.info("="*60)
+    logger.info("✅ UFAC Engine ready for requests")
+    logger.info("="*60)
+    
+    # Store RAG status in app state for health checks
+    app.state.rag_status = rag_status
+    
     yield
-    logger.info("UFAC Engine shutting down.")
+    
+    logger.info("🛑 UFAC Engine shutting down...")
 
 app = FastAPI(
     title="UFAC Engine API",
@@ -55,7 +94,23 @@ class EligibilityCheckRequest(BaseModel):
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "service": "UFAC Engine v2"}
+    """Health check with RAG status."""
+    rag_status = getattr(app.state, "rag_status", {"initialized": False})
+    return {
+        "status": "healthy",
+        "service": "UFAC Engine v2",
+        "rag": rag_status
+    }
+
+@app.get("/rag-status")
+async def rag_status():
+    """Check RAG pipeline status."""
+    try:
+        status = get_vectorstore_status()
+        return {"status": "ok", "rag": status}
+    except Exception as e:
+        logger.error(f"RAG status check failed: {e}")
+        return {"status": "error", "error": str(e)}
 
 @app.post("/check", response_model=UFACResponse)
 async def check_eligibility(request: EligibilityCheckRequest):
