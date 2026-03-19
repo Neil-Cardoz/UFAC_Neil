@@ -12,6 +12,8 @@ from pydantic import BaseModel
 from core.llm_utils import init_gemini, LLMInitializationError, LLMError
 from core.ufac_engine import run_ufac, UFACError
 from core.schema import UFACResponse
+from core.cache import get_assessment_cache, get_all_cache_stats, clear_all_caches
+from core.metrics import get_all_metrics, reset_metrics, record_request
 from data.rag_pipeline import get_retriever, get_vectorstore_status, RAGError
 
 # Configure structured logging
@@ -160,12 +162,26 @@ async def check_eligibility(request: EligibilityCheckRequest):
     """
     Check PM-KISAN eligibility.
     Runs all 5 agents with parallel async execution for low latency.
+    Uses caching to avoid redundant assessments.
     """
     try:
         user_data = request.model_dump(exclude_none=True)
         logger.info(f"Processing eligibility check with fields: {list(user_data.keys())}")
         
+        # Check cache first
+        cache = get_assessment_cache()
+        cache_key = cache._generate_key(user_data)
+        
+        cached_result = cache.get(cache_key)
+        if cached_result is not None:
+            logger.info(f"✅ Cache hit: returning cached assessment (confidence={cached_result.confidence})")
+            return cached_result
+        
+        # Run assessment if not cached
         result = await run_ufac(user_data)
+        
+        # Cache the result
+        cache.set(cache_key, result, ttl_seconds=3600)
         logger.info(f"Eligibility check completed: confidence={result.confidence}, risk={result.risk_level}")
         return result
         
@@ -197,7 +213,77 @@ async def root():
             "health": "GET /health",
             "check": "POST /check",
             "rag_status": "GET /rag-status",
+            "cache_stats": "GET /cache-stats",
+            "cache_clear": "POST /cache-clear",
+            "metrics": "GET /metrics",
+            "metrics_reset": "POST /metrics-reset",
             "docs": "GET /docs",
         },
     }
+
+
+@app.get("/cache-stats")
+async def cache_stats():
+    """Get cache statistics."""
+    try:
+        stats = get_all_cache_stats()
+        logger.info(f"Cache stats requested: {stats}")
+        return {
+            "status": "ok",
+            "cache": stats
+        }
+    except Exception as e:
+        logger.error(f"Failed to get cache stats: {str(e)}", exc_info=True)
+        return {"status": "error", "error": str(e)}
+
+
+@app.post("/cache-clear")
+async def cache_clear():
+    """Clear all caches."""
+    try:
+        clear_all_caches()
+        logger.info("All caches cleared via API")
+        return {
+            "status": "ok",
+            "message": "All caches cleared successfully"
+        }
+    except Exception as e:
+        logger.error(f"Failed to clear caches: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to clear caches: {str(e)}"
+        )
+
+
+@app.get("/metrics")
+async def metrics():
+    """Get system metrics."""
+    try:
+        metrics_data = get_all_metrics()
+        logger.info("Metrics requested")
+        return {
+            "status": "ok",
+            "metrics": metrics_data
+        }
+    except Exception as e:
+        logger.error(f"Failed to get metrics: {str(e)}", exc_info=True)
+        return {"status": "error", "error": str(e)}
+
+
+@app.post("/metrics-reset")
+async def metrics_reset():
+    """Reset all metrics."""
+    try:
+        reset_metrics()
+        logger.info("Metrics reset via API")
+        return {
+            "status": "ok",
+            "message": "Metrics reset successfully"
+        }
+    except Exception as e:
+        logger.error(f"Failed to reset metrics: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to reset metrics: {str(e)}"
+        )
 
