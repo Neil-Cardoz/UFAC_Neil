@@ -57,6 +57,9 @@ Expected packages:
 - sentence-transformers (embeddings)
 - python-dotenv (environment variables)
 - pytest (testing)
+- **slowapi** (rate limiting) - NEW in v2.0
+- **tenacity** (retry logic) - NEW in v2.0
+- **sqlalchemy, aiosqlite** (database) - NEW in v2.0
 
 ---
 
@@ -66,9 +69,37 @@ Expected packages:
 # Create .env file from template
 cp .env.example .env
 
-# Edit .env and add your Groq API key
-# .env should contain:
+# Edit .env and configure the following:
+```
+
+**Required Configuration:**
+```bash
 GROQ_API_KEY=your_groq_api_key_here
+```
+
+**Security Configuration (New in v2.0):**
+```bash
+# CORS - Comma-separated list of allowed origins
+ALLOWED_ORIGINS=http://localhost:3000
+# For production, add your domain:
+# ALLOWED_ORIGINS=http://localhost:3000,https://your-domain.com
+```
+
+**Performance Configuration (New in v2.0):**
+```bash
+# LLM timeout in seconds
+LLM_TIMEOUT_SECONDS=15.0
+
+# Cache TTL in seconds
+CACHE_TTL_ASSESSMENT=3600  # 1 hour
+CACHE_TTL_RAG=7200          # 2 hours
+CACHE_TTL_LLM=3600          # 1 hour
+```
+
+**Development Mode:**
+```bash
+# Reduces LLM calls from 3 to 1 for faster testing
+DEV_MODE=true
 ```
 
 Get your Groq API key:
@@ -225,15 +256,16 @@ python main.py
 ### Health & Status
 - `GET /health` - Health check with RAG status
 - `GET /rag-status` - RAG pipeline status
+- `GET /circuit-status` - Circuit breaker status (NEW in v2.0)
 - `GET /` - Root endpoint with all available endpoints
 
 ### Assessment
-- `POST /check` - Run PM-KISAN eligibility assessment
+- `POST /check` - Run PM-KISAN eligibility assessment (Rate limited: 10/min)
 
 ### Monitoring
 - `GET /cache-stats` - Cache statistics
 - `POST /cache-clear` - Clear all caches
-- `GET /metrics` - System metrics
+- `GET /metrics` - System metrics (Enhanced in v2.0)
 - `POST /metrics-reset` - Reset metrics
 
 ### Documentation
@@ -250,17 +282,39 @@ python main.py
 - Check GROQ_API_KEY is set correctly
 - Restart the server after updating .env
 
+### Issue: "CORS error" or "400 Bad Request from disallowed origin"
+**Solution** (NEW in v2.0):
+- Check `ALLOWED_ORIGINS` in .env includes your frontend URL
+- For local dev: `ALLOWED_ORIGINS=http://localhost:3000`
+- For production: Add your domain to the comma-separated list
+- Restart server after changing .env
+
+### Issue: "429 Too Many Requests"
+**Solution** (NEW in v2.0):
+- Rate limit is 10 requests/minute on /check endpoint
+- Wait 60 seconds before retrying
+- Check `/metrics` to see request counts
+- For testing, you can temporarily disable rate limiting in `api/app.py`
+
+### Issue: "Circuit breaker OPEN"
+**Solution** (NEW in v2.0):
+- After 5 consecutive API failures, circuit opens for 60 seconds
+- Check `/circuit-status` endpoint for current state
+- Common causes: Invalid API key, network issues, Groq API down
+- Wait for automatic recovery or fix the underlying issue
+
 ### Issue: "ChromaDB not found"
 **Solution**:
 - Run `python setup_rag.py` to build vector database
 - Ensure PDF files are in data/ directory
-- System will work without RAG using hardcoded rules
+- System will work without RAG using hardcoded rules with fallback
 
 ### Issue: "LLM API call failed"
 **Solution**:
 - Check internet connection
 - Verify Groq API key is valid
 - Check Groq API status at https://status.groq.com
+- Circuit breaker will automatically retry with exponential backoff
 - Try again after a few seconds
 
 ### Issue: "Port 8000 already in use"
@@ -325,9 +379,11 @@ ufac-engine/
 │   ├── confidence_agent.py    # Confidence calibration agent
 │   ├── decision_agent.py      # Decision guidance agent
 │   ├── ufac_engine.py         # Main orchestration engine
-│   ├── llm_utils.py           # LLM utilities and error handling
-│   ├── cache.py               # Caching layer
-│   ├── metrics.py             # Metrics collection
+│   ├── llm_utils.py           # LLM utilities with retry logic (v2.0)
+│   ├── cache.py               # Caching layer with configurable TTL (v2.0)
+│   ├── metrics.py             # Metrics collection (v2.0)
+│   ├── circuit_breaker.py     # Circuit breaker pattern (NEW v2.0)
+│   ├── constants.py           # Centralized constants (NEW v2.0)
 │   ├── schema.py              # Data schemas
 │   └── __init__.py
 ├── data/
@@ -398,5 +454,5 @@ curl http://localhost:8000/health
 
 ---
 
-**Last Updated**: March 20, 2026
-**Version**: 2.0.0
+**Last Updated**: March 24, 2026
+**Version**: 2.0.0 (Security & Resilience Update)

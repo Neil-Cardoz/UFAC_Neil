@@ -1,8 +1,8 @@
-# Quick Start Guide - Connect Frontend & Backend
+# Quick Start Guide - UFAC Engine v2.0
 
 ## Prerequisites
 
-- Python 3.8+ installed
+- Python 3.9+ installed
 - Node.js 18+ installed
 - Groq API key (get from https://console.groq.com/keys)
 
@@ -16,9 +16,11 @@ cp .env.example .env
 
 # 2. Edit .env and add your Groq API key
 # GROQ_API_KEY=your_actual_key_here
+# ALLOWED_ORIGINS=http://localhost:3000
 
-# 3. Install Python dependencies
+# 3. Install Python dependencies (includes new security & resilience packages)
 pip install -r requirements.txt
+# New packages: slowapi (rate limiting), tenacity (retry logic), sqlalchemy, aiosqlite
 
 # 4. (Optional) Setup RAG pipeline
 python setup_rag.py
@@ -34,6 +36,14 @@ python -m uvicorn api.app:app --reload --host 0.0.0.0 --port 8000
 ```
 
 Backend will run at: **http://localhost:8000**
+
+**New in v2.0:**
+- ✅ CORS lockdown (environment-based origins)
+- ✅ Rate limiting (10 requests/minute on /check)
+- ✅ Input sanitization (injection protection)
+- ✅ Circuit breaker for API resilience
+- ✅ Retry with exponential backoff
+- ✅ Configurable cache TTL
 
 ### Step 2: Setup Frontend
 
@@ -90,15 +100,16 @@ User sees results ← Frontend ← JSON Response ← Backend ← Assessment
 
 ## 📊 API Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | API information |
-| `/health` | GET | Health check |
-| `/check` | POST | Eligibility assessment |
-| `/rag-status` | GET | RAG pipeline status |
-| `/cache-stats` | GET | Cache statistics |
-| `/metrics` | GET | System metrics |
-| `/docs` | GET | Interactive API docs |
+| Endpoint | Method | Description | New in v2.0 |
+|----------|--------|-------------|-------------|
+| `/` | GET | API information | |
+| `/health` | GET | Health check | |
+| `/check` | POST | Eligibility assessment | ⚡ Rate limited |
+| `/rag-status` | GET | RAG pipeline status | |
+| `/cache-stats` | GET | Cache statistics | |
+| `/metrics` | GET | System metrics | ✨ Enhanced |
+| `/circuit-status` | GET | Circuit breaker status | ✅ NEW |
+| `/docs` | GET | Interactive API docs | |
 
 ## 🧪 Test API Directly
 
@@ -124,6 +135,7 @@ curl -X POST "http://localhost:8000/check" \
 - Check if `.env` file exists with valid `GROQ_API_KEY`
 - Check if port 8000 is already in use
 - Check Python dependencies: `pip install -r requirements.txt`
+- **New**: Verify `ALLOWED_ORIGINS` is set in `.env`
 
 ### Frontend won't start
 - Check if Node.js is installed: `node --version`
@@ -135,11 +147,22 @@ curl -X POST "http://localhost:8000/check" \
 - Check `UI/.env.local` has `NEXT_PUBLIC_API_URL=http://localhost:8000`
 - Check browser console for errors (F12)
 - Verify backend is accessible: http://localhost:8000/health
+- **New**: Check CORS settings if getting 400 errors
 
 ### "Failed to connect to assessment service"
 - Backend is not running - start it first
 - Wrong API URL in `UI/.env.local`
 - Firewall blocking connection
+
+### Rate limit errors (429)
+- **New in v2.0**: /check endpoint limited to 10 requests/minute
+- Wait 60 seconds before retrying
+- Check `/metrics` to see request counts
+
+### Circuit breaker open
+- **New in v2.0**: After 5 consecutive failures, circuit opens for 60s
+- Check `/circuit-status` endpoint
+- Wait for recovery or fix underlying issue (API key, network)
 
 ## 📚 More Information
 
