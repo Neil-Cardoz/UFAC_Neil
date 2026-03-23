@@ -180,3 +180,45 @@ def get_vectorstore_status() -> dict:
             status["error"] = str(e)
     
     return status
+
+
+def _get_fallback_context() -> str:
+    """Fallback context when RAG is unavailable."""
+    return """
+PM-KISAN Eligibility (Fallback Rules):
+- Beneficiary: Small/marginal farmers with cultivable land
+- Required: Valid Aadhaar, bank account, e-KYC completion
+- Disqualified: Income tax payers, govt employees,
+  pension > Rs 10,000/month, practicing professionals,
+  constitutional post holders, institutional landholders
+- Land: Must be in state/UT land records as of Feb 1, 2019
+- Payment: Rs 6,000/year in 3 installments of Rs 2,000 each
+"""
+
+
+def retrieve_context(query: str, k: int = 4) -> str:
+    """
+    Retrieve context from RAG pipeline with graceful fallback.
+    
+    Args:
+        query: Search query
+        k: Number of documents to retrieve
+        
+    Returns:
+        Retrieved context or fallback rules
+    """
+    try:
+        retriever = get_retriever()
+        retriever.search_kwargs["k"] = k
+        docs = retriever.invoke(query)
+        if not docs:
+            logger.warning("No documents retrieved, using fallback context")
+            return _get_fallback_context()
+        return "\n\n---\n\n".join(
+            f"[Source: {doc.metadata.get('source','Unknown')}, "
+            f"Page {doc.metadata.get('page','?')}]\n{doc.page_content}"
+            for doc in docs
+        )
+    except Exception as e:
+        logger.warning(f"RAG failed, using fallback context: {e}")
+        return _get_fallback_context()
