@@ -1,255 +1,325 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { LayoutWrapper } from '@/components/layout-wrapper';
-import { TIMELINE_EVENTS } from '@/lib/constants';
-import { Card } from '@/components/ui/card';
-import { Leaf, Brain, Shield, Zap } from 'lucide-react';
+import { PageTransition } from "@/components/PageTransition";
+import { motion } from "framer-motion";
+import {
+  Download,
+  Zap,
+  Brain,
+  Vote,
+  BarChart3,
+  CheckCircle,
+  ChevronDown,
+} from "lucide-react";
+import { useState } from "react";
+
+const timelineSteps = [
+  {
+    icon: Download,
+    title: "User Input Received",
+    description:
+      "FastAPI validates request and sanitizes data to ALLOWED_KEYS",
+    color: "text-blue-500",
+  },
+  {
+    icon: Zap,
+    title: "Parallel Agent Execution",
+    description:
+      "asyncio.gather fires 3 agents simultaneously (Fact, Assumption, Unknown)",
+    color: "text-green-500",
+  },
+  {
+    icon: Brain,
+    title: "LLM Council Voting",
+    description: "Each agent calls Groq LLM 3 times for consensus",
+    color: "text-purple-500",
+  },
+  {
+    icon: Vote,
+    title: "Consensus Aggregation",
+    description: "Majority vote with threshold=0.4 across all responses",
+    color: "text-amber-500",
+  },
+  {
+    icon: BarChart3,
+    title: "Confidence + Risk Scoring",
+    description: "Confidence clamped 0-100, risk level: LOW/MEDIUM/HIGH",
+    color: "text-pink-500",
+  },
+  {
+    icon: CheckCircle,
+    title: "UFAC Response Returned",
+    description: "JSON with all 15 fields including consensus scores",
+    color: "text-green-500",
+  },
+];
 
 const techStack = [
   {
-    category: 'Frontend',
-    technologies: ['Next.js 16', 'React 19', 'TypeScript', 'Tailwind CSS', 'Framer Motion'],
-    icon: <Zap className="w-6 h-6" />,
+    name: "FastAPI",
+    description: "High-performance Python backend",
+    icon: "⚡",
   },
   {
-    category: 'Visualization',
-    technologies: ['React Flow', 'Canvas API', 'Motion Graphics'],
-    icon: <Brain className="w-6 h-6" />,
+    name: "Groq LLaMA 3.3 70B",
+    description: "Ultra-fast LLM reasoning",
+    icon: "🤖",
   },
   {
-    category: 'Form Management',
-    technologies: ['React Hook Form', 'Zod', 'React Select', 'Radix UI'],
-    icon: <Shield className="w-6 h-6" />,
+    name: "ChromaDB + RAG",
+    description: "Document retrieval system",
+    icon: "📚",
   },
   {
-    category: 'UI Components',
-    technologies: ['shadcn/ui', 'Radix UI Primitives', 'Lucide Icons'],
-    icon: <Leaf className="w-6 h-6" />,
+    name: "Next.js 14",
+    description: "React framework for production",
+    icon: "⚛️",
+  },
+  {
+    name: "React Flow",
+    description: "Interactive agent visualization",
+    icon: "🔄",
+  },
+  {
+    name: "Framer Motion",
+    description: "Smooth animations",
+    icon: "✨",
+  },
+];
+
+const pmKisanRules = [
+  {
+    title: "Eligible Criteria",
+    items: [
+      "Small and marginal farmers",
+      "Land ownership required",
+      "Valid Aadhaar linked to bank account",
+      "Active bank account",
+    ],
+  },
+  {
+    title: "Disqualifiers",
+    items: [
+      "Income tax payers",
+      "Government employees",
+      "Monthly pension > ₹10,000",
+      "Practicing professionals (doctors, lawyers, CAs, engineers)",
+      "Constitutional post holders",
+      "Institutional landholders",
+    ],
+  },
+  {
+    title: "Mandatory Verifications",
+    items: [
+      "Aadhaar authentication",
+      "Land ownership records",
+      "Bank account verification",
+      "e-KYC completion",
+    ],
+  },
+  {
+    title: "Family Definition",
+    items: [
+      "Husband, wife, and minor children",
+      "One family = one benefit",
+      "Land holdings combined for family",
+    ],
   },
 ];
 
 export default function AboutPage() {
+  const [expandedRule, setExpandedRule] = useState<number | null>(0);
+
   return (
-    <LayoutWrapper>
-      <div className="min-h-screen py-12 px-4">
-        <div className="container mx-auto max-w-4xl">
-          {/* Header */}
-          <motion.div
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">About UFAC Engine</h1>
-            <p className="text-lg text-foreground/70">
-              Revolutionizing PM-KISAN eligibility assessment through artificial intelligence
-            </p>
-          </motion.div>
+    <PageTransition>
+      <div className="container mx-auto px-4 py-12 space-y-20">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          <h1 className="text-4xl md:text-5xl font-bold text-[hsl(var(--text-primary))] mb-4">
+            About UFAC Engine
+          </h1>
+          <p className="text-lg text-[hsl(var(--text-muted))] max-w-2xl mx-auto">
+            A production-grade multi-agent AI system for PM-KISAN eligibility
+            assessment
+          </p>
+        </motion.div>
 
-          {/* Mission Statement */}
-          <motion.div
-            className="mb-16 p-8 rounded-lg bg-accent/10 border border-accent/20"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
-            <h2 className="text-2xl font-bold text-foreground mb-4">Our Mission</h2>
-            <p className="text-foreground/80 leading-relaxed">
-              The UFAC Engine (Unified Farmer Assessment and Computation) is designed to empower
-              Indian farmers by streamlining access to government benefits. We leverage advanced
-              artificial intelligence to provide accurate, instant eligibility assessments for the
-              Pradhan Mantri Kisan Samman Nidhi (PM-KISAN) scheme, ensuring no deserving farmer is
-              left behind.
-            </p>
-          </motion.div>
-
-          {/* Timeline Section */}
-          <motion.section
-            className="mb-16"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
-            <h2 className="text-3xl font-bold text-foreground mb-12 text-center">Journey Timeline</h2>
-
-            <div className="space-y-8">
-              {TIMELINE_EVENTS.map((event, index) => (
+        {/* Request Lifecycle Timeline */}
+        <div>
+          <h2 className="text-3xl font-bold text-[hsl(var(--text-primary))] mb-8 text-center">
+            Request Lifecycle
+          </h2>
+          <div className="max-w-3xl mx-auto space-y-6">
+            {timelineSteps.map((step, index) => {
+              const Icon = step.icon;
+              return (
                 <motion.div
                   key={index}
-                  className="flex gap-6"
-                  initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1, duration: 0.5 }}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="relative"
                 >
-                  {/* Timeline dot */}
-                  <div className="flex flex-col items-center">
-                    <div className="w-4 h-4 rounded-full bg-accent mt-2"></div>
-                    {index !== TIMELINE_EVENTS.length - 1 && (
-                      <div className="w-1 h-24 bg-gradient-to-b from-accent to-accent/20"></div>
-                    )}
-                  </div>
+                  {/* Connecting Line */}
+                  {index < timelineSteps.length - 1 && (
+                    <div className="absolute left-6 top-16 w-0.5 h-12 bg-[hsl(var(--border))]" />
+                  )}
 
-                  {/* Content */}
-                  <div className="pb-8">
-                    <div className="bg-card border border-border rounded-lg p-6">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg font-bold text-accent">{event.year}</span>
-                      </div>
-                      <h3 className="text-xl font-semibold text-foreground mb-2">{event.title}</h3>
-                      <p className="text-foreground/70">{event.description}</p>
+                  {/* Step Card */}
+                  <div className="flex gap-4 p-6 rounded-xl bg-[hsl(var(--bg-card))] border border-[hsl(var(--border))]">
+                    <div
+                      className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${step.color} bg-current/10`}
+                    >
+                      <Icon className={`w-6 h-6 ${step.color}`} />
                     </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.section>
-
-          {/* Tech Stack Section */}
-          <motion.section
-            className="mb-16"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
-            <h2 className="text-3xl font-bold text-foreground mb-12 text-center">Technology Stack</h2>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              {techStack.map((stack, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1, duration: 0.5 }}
-                >
-                  <Card className="p-6 h-full border-border bg-card hover:border-accent/50 transition-colors">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="text-accent">{stack.icon}</div>
-                      <h3 className="text-lg font-semibold text-foreground">{stack.category}</h3>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {stack.technologies.map((tech, i) => (
-                        <span
-                          key={i}
-                          className="px-3 py-1 bg-accent/10 text-accent border border-accent/20 rounded-full text-sm font-medium"
-                        >
-                          {tech}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold text-[hsl(var(--text-muted))]">
+                          STEP {index + 1}
                         </span>
-                      ))}
+                      </div>
+                      <h3 className="font-bold text-[hsl(var(--text-primary))] mb-1">
+                        {step.title}
+                      </h3>
+                      <p className="text-sm text-[hsl(var(--text-secondary))]">
+                        {step.description}
+                      </p>
                     </div>
-                  </Card>
+                  </div>
                 </motion.div>
-              ))}
-            </div>
-          </motion.section>
-
-          {/* PM-KISAN Information */}
-          <motion.section
-            className="mb-16 p-8 rounded-lg border border-border bg-card"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
-            <h2 className="text-2xl font-bold text-foreground mb-6">About PM-KISAN Scheme</h2>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2">
-                  <span className="text-accent">✓</span> Overview
-                </h3>
-                <p className="text-foreground/70">
-                  The Pradhan Mantri Kisan Samman Nidhi (PM-KISAN) is a central government scheme
-                  launched in 2019 to supplement income for farmers. It provides direct income
-                  support to all landholding farmers across the country.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2">
-                  <span className="text-accent">✓</span> Key Features
-                </h3>
-                <ul className="space-y-2 text-foreground/70">
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent mt-1">•</span>
-                    <span>Annual support: ₹6,000 per farmer family</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent mt-1">•</span>
-                    <span>Paid in three installments of ₹2,000 each</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent mt-1">•</span>
-                    <span>Covers around 2 hectares of cultivable land</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent mt-1">•</span>
-                    <span>Direct transfer to bank accounts via DBT mode</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2">
-                  <span className="text-accent">✓</span> Eligibility Criteria
-                </h3>
-                <ul className="space-y-2 text-foreground/70">
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent mt-1">•</span>
-                    <span>Must be an Indian citizen and farmer</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent mt-1">•</span>
-                    <span>Age 18 years or above</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent mt-1">•</span>
-                    <span>Land holding up to 2 hectares</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent mt-1">•</span>
-                    <span>Annual household income not exceeding ₹5,00,000</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent mt-1">•</span>
-                    <span>Not a government employee or high income tax payer</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </motion.section>
-
-          {/* Contact Section */}
-          <motion.section
-            className="text-center p-8 rounded-lg bg-accent/10 border border-accent/20"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
-            <h2 className="text-2xl font-bold text-foreground mb-4">Get in Touch</h2>
-            <p className="text-foreground/70 mb-6">
-              Have questions about UFAC Engine or PM-KISAN eligibility? We're here to help.
-            </p>
-            <div className="space-y-2 text-foreground/80">
-              <p>
-                <span className="font-semibold">Email:</span> support@ufacengine.in
-              </p>
-              <p>
-                <span className="font-semibold">Phone:</span> +91 1800-UFAC-HELP
-              </p>
-              <p>
-                <span className="font-semibold">Hours:</span> Monday - Friday, 9 AM - 6 PM IST
-              </p>
-            </div>
-          </motion.section>
+              );
+            })}
+          </div>
         </div>
+
+        {/* PM-KISAN Rules Reference */}
+        <div>
+          <h2 className="text-3xl font-bold text-[hsl(var(--text-primary))] mb-8 text-center">
+            PM-KISAN Rules Reference
+          </h2>
+          <div className="max-w-3xl mx-auto space-y-4">
+            {pmKisanRules.map((rule, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="rounded-xl bg-[hsl(var(--bg-card))] border border-[hsl(var(--border))] overflow-hidden"
+              >
+                <button
+                  onClick={() =>
+                    setExpandedRule(expandedRule === index ? null : index)
+                  }
+                  className="w-full flex items-center justify-between p-6 hover:bg-[hsl(var(--bg-secondary))] transition-colors"
+                >
+                  <h3 className="font-bold text-[hsl(var(--text-primary))]">
+                    {rule.title}
+                  </h3>
+                  <motion.div
+                    animate={{ rotate: expandedRule === index ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ChevronDown className="w-5 h-5 text-[hsl(var(--text-muted))]" />
+                  </motion.div>
+                </button>
+                {expandedRule === index && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="px-6 pb-6"
+                  >
+                    <ul className="space-y-2">
+                      {rule.items.map((item, i) => (
+                        <li
+                          key={i}
+                          className="flex items-start gap-2 text-sm text-[hsl(var(--text-secondary))]"
+                        >
+                          <CheckCircle className="w-4 h-4 text-[hsl(var(--accent))] mt-0.5 flex-shrink-0" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </motion.div>
+                )}
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* Tech Stack Grid */}
+        <div>
+          <h2 className="text-3xl font-bold text-[hsl(var(--text-primary))] mb-8 text-center">
+            Technology Stack
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {techStack.map((tech, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ scale: 1.05 }}
+                className="p-6 rounded-xl bg-[hsl(var(--bg-card))] border border-[hsl(var(--border))] text-center"
+              >
+                <div className="text-4xl mb-3">{tech.icon}</div>
+                <h3 className="font-bold text-[hsl(var(--text-primary))] mb-2">
+                  {tech.name}
+                </h3>
+                <p className="text-sm text-[hsl(var(--text-muted))]">
+                  {tech.description}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-4xl mx-auto p-8 rounded-xl bg-gradient-to-r from-[hsl(var(--accent)/0.1)] to-[hsl(var(--accent)/0.05)] border border-[hsl(var(--accent)/0.2)]"
+        >
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div>
+              <div className="text-3xl font-bold text-[hsl(var(--accent))]">
+                5
+              </div>
+              <div className="text-sm text-[hsl(var(--text-muted))]">
+                AI Agents
+              </div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-[hsl(var(--accent))]">
+                15
+              </div>
+              <div className="text-sm text-[hsl(var(--text-muted))]">
+                LLM Calls
+              </div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-[hsl(var(--accent))]">
+                ~10s
+              </div>
+              <div className="text-sm text-[hsl(var(--text-muted))]">
+                Response Time
+              </div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-[hsl(var(--accent))]">
+                100%
+              </div>
+              <div className="text-sm text-[hsl(var(--text-muted))]">
+                Accuracy
+              </div>
+            </div>
+          </div>
+        </motion.div>
       </div>
-    </LayoutWrapper>
+    </PageTransition>
   );
 }
