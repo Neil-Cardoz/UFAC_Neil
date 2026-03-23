@@ -65,35 +65,34 @@ The UFAC Engine uses a council of specialized AI agents to analyze user data and
 
 ## 🚀 Quick Start
 
-### 1. Install Dependencies
+### Backend + Frontend Setup
 
-```bash
-pip install -r requirements.txt
-```
+**See [QUICK_START.md](QUICK_START.md) for the complete 5-minute setup guide!**
 
-### 2. Configure API Key
+#### Backend Only
 
-Create a `.env` file:
-
-```env
-GROQ_API_KEY=your_groq_api_key_here
-```
-
-Get your key from [Groq Console](https://console.groq.com/keys)
-
-### 3. Setup RAG (Optional)
-
-```bash
-python setup_rag.py
-```
-
-### 4. Run the Application
-
-```bash
-python -m uvicorn api.app:app --reload
-```
+1. Install dependencies: `pip install -r requirements.txt`
+2. Create `.env` file: `cp .env.example .env`
+3. Add your Groq API key to `.env`
+4. Setup RAG (optional): `python setup_rag.py`
+5. Start server: `python -m uvicorn api.app:app --reload`
 
 Visit: `http://localhost:8000/docs`
+
+#### Frontend Only
+
+1. Navigate to UI: `cd UI`
+2. Install dependencies: `npm install`
+3. Start dev server: `npm run dev`
+
+Visit: `http://localhost:3000`
+
+#### Connect Both
+
+See detailed guides:
+- [QUICK_START.md](QUICK_START.md) - 5-minute setup
+- [CONNECT_FRONTEND_BACKEND.md](CONNECT_FRONTEND_BACKEND.md) - Detailed connection guide
+- [CONNECTION_DIAGRAM.md](CONNECTION_DIAGRAM.md) - Visual architecture
 
 ## 📖 Usage
 
@@ -229,7 +228,13 @@ curl http://localhost:8000/health | jq
 
 ## 📚 Documentation
 
-- [SETUP_GUIDE.md](SETUP_GUIDE.md) - Setup instructions
+### Getting Started
+- [QUICK_START.md](QUICK_START.md) - 5-minute setup guide
+- [CONNECT_FRONTEND_BACKEND.md](CONNECT_FRONTEND_BACKEND.md) - Connect UI to API
+- [CONNECTION_DIAGRAM.md](CONNECTION_DIAGRAM.md) - Visual architecture
+- [SETUP_AND_RUN_GUIDE.md](SETUP_AND_RUN_GUIDE.md) - Detailed setup
+
+### Technical Guides
 - [ERROR_HANDLING_GUIDE.md](ERROR_HANDLING_GUIDE.md) - Error handling
 - [PRIORITY_A_SUMMARY.md](PRIORITY_A_SUMMARY.md) - RAG caching
 - [PRIORITY_B_SUMMARY.md](PRIORITY_B_SUMMARY.md) - RAG validation
@@ -238,6 +243,8 @@ curl http://localhost:8000/health | jq
 - [PRIORITY_E_SUMMARY.md](PRIORITY_E_SUMMARY.md) - Caching layer
 - [PRIORITY_F_SUMMARY.md](PRIORITY_F_SUMMARY.md) - Testing suite
 - [PRIORITY_G_SUMMARY.md](PRIORITY_G_SUMMARY.md) - Monitoring
+
+### Reference
 - [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) - Full index
 - [EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md) - Executive summary
 

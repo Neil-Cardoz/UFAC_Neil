@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { LayoutWrapper } from '@/components/layout-wrapper';
 import { EligibilityForm } from '@/components/eligibility-form';
 import { EligibilityResults, EligibilityResult } from '@/components/eligibility-results';
-import { INELIGIBILITY_REASONS } from '@/lib/constants';
+import { useUFACAssessment } from '@/hooks/useUFACAssessment';
 
 interface FormData {
   fullName: string;
@@ -17,58 +17,77 @@ interface FormData {
 
 export default function EligibilityPage() {
   const [result, setResult] = useState<EligibilityResult | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [fullName, setFullName] = useState<string>('');
+  const { assess, isLoading, error } = useUFACAssessment();
 
-  const checkEligibility = (data: FormData) => {
-    setIsLoading(true);
+  const checkEligibility = async (data: FormData) => {
+    try {
+      setFullName(data.fullName);
+      
+      // Map form data to API format
+      const apiInput = {
+        occupation: 'farmer',
+        land_ownership: data.landHolding > 0 ? 'yes' : 'no',
+        annual_income: data.annualIncome,
+        // Add more mappings as needed
+      };
 
-    // Simulate API call
-    setTimeout(() => {
+      const response = await assess(apiInput);
+
+      // Map API response to UI result format
       const reasons: string[] = [];
-      let eligibilityScore = 100;
-
-      // Check age
-      if (data.age < 18) {
-        reasons.push(INELIGIBILITY_REASONS.AGE_TOO_YOUNG);
-        eligibilityScore = 0;
-      }
-
-      // Check income
-      if (data.annualIncome > 500000) {
-        reasons.push(INELIGIBILITY_REASONS.INCOME_EXCEEDS);
-        eligibilityScore = 0;
-      }
-
-      // Check land holding
-      if (data.landHolding < 0.01) {
-        reasons.push(INELIGIBILITY_REASONS.LAND_TOO_SMALL);
-        eligibilityScore = 0;
-      } else if (data.landHolding > 2) {
-        reasons.push(INELIGIBILITY_REASONS.LAND_TOO_LARGE);
-        eligibilityScore = 0;
-      }
-
-      // If age, income and land are valid, add positive reasons
-      if (data.age >= 18 && data.annualIncome <= 500000 && data.landHolding >= 0.01 && data.landHolding <= 2) {
-        reasons.push('✓ Age requirement met (18+ years)');
-        reasons.push('✓ Annual income within acceptable range');
-        reasons.push(`✓ Land holding of ${data.landHolding} hectares is valid`);
-        reasons.push(`✓ Eligible for ₹6,000 annual support (3 installments of ₹2,000)`);
-      }
-
-      setResult({
-        isEligible: eligibilityScore === 100,
-        fullName: data.fullName,
-        reasons,
-        eligibilityPercentage: eligibilityScore,
+      
+      // Add known facts as positive reasons
+      response.known_facts.forEach(fact => {
+        reasons.push(`✓ ${fact}`);
       });
 
-      setIsLoading(false);
-    }, 1500);
+      // Add assumptions with warning
+      response.assumptions.forEach(assumption => {
+        reasons.push(`⚠ Assumption: ${assumption}`);
+      });
+
+      // Add unknowns as information needed
+      response.unknowns.forEach(unknown => {
+        reasons.push(`❓ Unknown: ${unknown}`);
+      });
+
+      // Add next steps
+      response.next_steps.forEach(step => {
+        reasons.push(`→ ${step}`);
+      });
+
+      // Determine eligibility based on answer and confidence
+      const isEligible = response.answer.toLowerCase().includes('eligible') && 
+                        !response.answer.toLowerCase().includes('not eligible') &&
+                        response.confidence >= 0.6;
+
+      setResult({
+        isEligible,
+        fullName: data.fullName,
+        reasons,
+        eligibilityPercentage: Math.round(response.confidence * 100),
+        ufacResponse: response, // Store full response for detailed view
+      });
+
+    } catch (err) {
+      console.error('Assessment failed:', err);
+      setResult({
+        isEligible: false,
+        fullName: data.fullName,
+        reasons: [
+          `❌ Error: ${error || 'Failed to connect to assessment service'}`,
+          '→ Please ensure the backend API is running on http://localhost:8000',
+          '→ Check your internet connection and try again'
+        ],
+        eligibilityPercentage: 0,
+      });
+    }
   };
 
   const handleNewCheck = () => {
     setResult(null);
+    setFullName('');
   };
 
   return (

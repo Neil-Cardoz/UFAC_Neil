@@ -11,11 +11,14 @@ import {
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
+import { UFACResponse } from '@/hooks/useUFACAssessment';
+
 export interface EligibilityResult {
   isEligible: boolean;
   fullName: string;
   reasons: string[];
   eligibilityPercentage: number;
+  ufacResponse?: UFACResponse;
 }
 
 interface EligibilityResultsProps {
