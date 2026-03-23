@@ -1,34 +1,35 @@
-"use client";
+"use client"
+import { useState, useEffect } from "react"
 
-import { useState, useEffect } from "react";
-import { getHealthStatus, type HealthStatus } from "@/lib/api";
-
-export type BackendStatus = "online" | "offline" | "checking";
+type Status = "online" | "offline" | "checking"
 
 export function useBackendStatus() {
-  const [status, setStatus] = useState<BackendStatus>("checking");
-  const [healthData, setHealthData] = useState<HealthStatus | null>(null);
+  const [status, setStatus] = useState<Status>("checking")
+  const [ragActive, setRagActive] = useState(false)
+
+  const check = async () => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/health`,
+        { signal: AbortSignal.timeout(5000) }
+      )
+      if (res.ok) {
+        const data = await res.json()
+        setStatus("online")
+        setRagActive(data.rag?.initialized === true)
+      } else {
+        setStatus("offline")
+      }
+    } catch {
+      setStatus("offline")
+    }
+  }
 
   useEffect(() => {
-    const checkHealth = async () => {
-      try {
-        const data = await getHealthStatus();
-        setHealthData(data);
-        setStatus("online");
-      } catch {
-        setHealthData(null);
-        setStatus("offline");
-      }
-    };
+    check()
+    const interval = setInterval(check, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
-    // Initial check
-    checkHealth();
-
-    // Poll every 30 seconds
-    const interval = setInterval(checkHealth, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  return { status, healthData };
+  return { status, ragActive }
 }
