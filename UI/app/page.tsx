@@ -108,7 +108,7 @@ export default function HomePage() {
                 backgroundClip: "text",
               }}
             >
-              UFAC Engine
+              Uncertainity First Agent Coucil
             </motion.h1>
 
             {/* Subtitle */}

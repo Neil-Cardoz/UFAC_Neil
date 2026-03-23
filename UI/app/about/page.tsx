@@ -10,6 +10,14 @@ import {
   BarChart3,
   CheckCircle,
   ChevronDown,
+  Code2,
+  Database,
+  Layout,
+  FileText,
+  Lightbulb,
+  PenTool,
+  Search,
+  BookOpen,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -55,36 +63,12 @@ const timelineSteps = [
 ];
 
 const techStack = [
-  {
-    name: "FastAPI",
-    description: "High-performance Python backend",
-    icon: "⚡",
-  },
-  {
-    name: "Groq LLaMA 3.3 70B",
-    description: "Ultra-fast LLM reasoning",
-    icon: "🤖",
-  },
-  {
-    name: "ChromaDB + RAG",
-    description: "Document retrieval system",
-    icon: "📚",
-  },
-  {
-    name: "Next.js 14",
-    description: "React framework for production",
-    icon: "⚛️",
-  },
-  {
-    name: "React Flow",
-    description: "Interactive agent visualization",
-    icon: "🔄",
-  },
-  {
-    name: "Framer Motion",
-    description: "Smooth animations",
-    icon: "✨",
-  },
+  { name: "FastAPI", description: "High-performance Python backend", icon: "⚡" },
+  { name: "Groq LLaMA 3.3 70B", description: "Ultra-fast LLM reasoning", icon: "🤖" },
+  { name: "ChromaDB + RAG", description: "Document retrieval system", icon: "📚" },
+  { name: "Next.js 14", description: "React framework for production", icon: "⚛️" },
+  { name: "React Flow", description: "Interactive agent visualization", icon: "🔄" },
+  { name: "Framer Motion", description: "Smooth animations", icon: "✨" },
 ];
 
 const pmKisanRules = [
@@ -127,6 +111,53 @@ const pmKisanRules = [
   },
 ];
 
+// Order: Neil (left), Arjun (center/lead), Amit (right)
+const teamMembers = [
+  {
+    name: "Neil Cardoz",
+    role: "Documentation & Research",
+    badge: "Docs & Research",
+    badgeColor:
+      "bg-purple-500/10 text-purple-400 border border-purple-500/30",
+    isLead: false,
+    contributions: [
+      { icon: FileText, text: "Authored technical documentation & API docs" },
+      { icon: Search, text: "Researched PM-KISAN policy rules & edge cases" },
+      { icon: BookOpen, text: "Maintained project README and user guides" },
+    ],
+    photoPlaceholder: "ADD_NEIL_PHOTO_HERE",
+  },
+  {
+    name: "Arjun Reddy",
+    role: "Lead Engineer & AI Architect",
+    badge: "Project Lead",
+    badgeColor:
+      "bg-[hsl(var(--accent)/0.15)] text-[hsl(var(--accent))] border border-[hsl(var(--accent)/0.3)]",
+    isLead: true,
+    contributions: [
+      { icon: Brain, text: "Designed & built the entire UFAC multi-agent architecture" },
+      { icon: Code2, text: "Engineered Groq LLM council voting & consensus logic" },
+      { icon: Database, text: "Developed FastAPI backend, RAG pipeline & scoring system" },
+      { icon: Layout, text: "Built the full Next.js frontend & React Flow visualizations" },
+    ],
+    photoPlaceholder: "ADD_ARJUN_PHOTO_HERE",
+  },
+  {
+    name: "Amit Kumar Racha",
+    role: "Ideation & Planning",
+    badge: "Ideation & Strategy",
+    badgeColor:
+      "bg-green-500/10 text-green-400 border border-green-500/30",
+    isLead: false,
+    contributions: [
+      { icon: Lightbulb, text: "Conceptualized the multi-agent eligibility framework" },
+      { icon: PenTool, text: "Defined project scope, milestones & feature roadmap" },
+      { icon: Search, text: "Validated system outputs against PM-KISAN guidelines" },
+    ],
+    photoPlaceholder: "ADD_AMIT_PHOTO_HERE",
+  },
+];
+
 export default function AboutPage() {
   const [expandedRule, setExpandedRule] = useState<number | null>(0);
 
@@ -164,12 +195,9 @@ export default function AboutPage() {
                   transition={{ delay: index * 0.1 }}
                   className="relative"
                 >
-                  {/* Connecting Line */}
                   {index < timelineSteps.length - 1 && (
                     <div className="absolute left-6 top-16 w-0.5 h-12 bg-[hsl(var(--border))]" />
                   )}
-
-                  {/* Step Card */}
                   <div className="flex gap-4 p-6 rounded-xl bg-[hsl(var(--bg-card))] border border-[hsl(var(--border))]">
                     <div
                       className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${step.color} bg-current/10`}
@@ -278,6 +306,113 @@ export default function AboutPage() {
           </div>
         </div>
 
+        {/* ── MEET THE TEAM ── */}
+        <div>
+          <h2 className="text-3xl font-bold text-[hsl(var(--text-primary))] mb-2 text-center">
+            Meet the Team
+          </h2>
+          <p className="text-center text-[hsl(var(--text-muted))] mb-10">
+            The minds behind the UFAC Engine
+          </p>
+
+          {/*
+           * Layout strategy:
+           * – Mobile: stacked column, Arjun rendered first via order-first
+           * – md+: 3-column grid — Arjun's card is taller via self-start + extra ring/glow
+           * The array order is [Neil, Arjun, Amit] so Arjun sits in col 2 naturally.
+           */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto items-start">
+            {teamMembers.map((member, index) => {
+              const isLead = member.isLead;
+              return (
+                <motion.div
+                  key={index}
+                  // On mobile, push Arjun to top
+                  className={`flex flex-col rounded-2xl border overflow-hidden
+                    ${isLead
+                      ? "order-first md:order-none bg-[hsl(var(--bg-card))] border-[hsl(var(--accent)/0.4)] shadow-[0_0_30px_hsl(var(--accent)/0.12)] md:scale-105"
+                      : "bg-[hsl(var(--bg-card))] border-[hsl(var(--border))]"
+                    }`}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.15 }}
+                  whileHover={{ y: -4 }}
+                >
+                  {/* Lead crown accent bar */}
+                  {isLead && (
+                    <div className="h-1 w-full bg-gradient-to-r from-[hsl(var(--accent)/0.6)] via-[hsl(var(--accent))] to-[hsl(var(--accent)/0.6)]" />
+                  )}
+
+                  {/* ── Photo Slot ── */}
+                  <div
+                    className={`relative w-full flex items-center justify-center overflow-hidden bg-[hsl(var(--bg-secondary))]
+                      ${isLead ? "aspect-[4/3]" : "aspect-square"}`}
+                  >
+                    {/*
+                     * TO ADD PHOTO: Replace the placeholder div below with:
+                     * <Image src="/team/arjun.jpg" alt={member.name} fill className="object-cover" />
+                     * import Image from "next/image" at the top
+                     */}
+                    <div className="flex flex-col items-center gap-2 text-[hsl(var(--text-muted))]">
+                      <div
+                        className={`rounded-full bg-[hsl(var(--border))] flex items-center justify-center font-bold text-[hsl(var(--text-primary))]
+                          ${isLead ? "w-24 h-24 text-4xl" : "w-20 h-20 text-3xl"}`}
+                      >
+                        {member.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
+                      </div>
+                      <span className="text-xs opacity-40">📷 Add photo here</span>
+                    </div>
+
+                    {/* Role Badge */}
+                    <span
+                      className={`absolute top-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full ${member.badgeColor}`}
+                    >
+                      {member.badge}
+                    </span>
+                  </div>
+
+                  {/* ── Info ── */}
+                  <div className="p-5 flex flex-col flex-1">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <h3
+                        className={`font-bold text-[hsl(var(--text-primary))]
+                          ${isLead ? "text-xl" : "text-lg"}`}
+                      >
+                        {member.name}
+                      </h3>
+                      {isLead && (
+                        <span className="text-base leading-none">👑</span>
+                      )}
+                    </div>
+                    <p className="text-sm text-[hsl(var(--text-muted))] mb-4">
+                      {member.role}
+                    </p>
+
+                    {/* Contributions */}
+                    <ul className="space-y-2 flex-1">
+                      {member.contributions.map((c, i) => {
+                        const CIcon = c.icon;
+                        return (
+                          <li
+                            key={i}
+                            className="flex items-start gap-2 text-sm text-[hsl(var(--text-secondary))]"
+                          >
+                            <CIcon className="w-4 h-4 text-[hsl(var(--accent))] mt-0.5 flex-shrink-0" />
+                            <span>{c.text}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Stats */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -286,36 +421,20 @@ export default function AboutPage() {
         >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div>
-              <div className="text-3xl font-bold text-[hsl(var(--accent))]">
-                5
-              </div>
-              <div className="text-sm text-[hsl(var(--text-muted))]">
-                AI Agents
-              </div>
+              <div className="text-3xl font-bold text-[hsl(var(--accent))]">5</div>
+              <div className="text-sm text-[hsl(var(--text-muted))]">AI Agents</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-[hsl(var(--accent))]">
-                15
-              </div>
-              <div className="text-sm text-[hsl(var(--text-muted))]">
-                LLM Calls
-              </div>
+              <div className="text-3xl font-bold text-[hsl(var(--accent))]">15</div>
+              <div className="text-sm text-[hsl(var(--text-muted))]">LLM Calls</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-[hsl(var(--accent))]">
-                ~10s
-              </div>
-              <div className="text-sm text-[hsl(var(--text-muted))]">
-                Response Time
-              </div>
+              <div className="text-3xl font-bold text-[hsl(var(--accent))]">~10s</div>
+              <div className="text-sm text-[hsl(var(--text-muted))]">Response Time</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-[hsl(var(--accent))]">
-                100%
-              </div>
-              <div className="text-sm text-[hsl(var(--text-muted))]">
-                Accuracy
-              </div>
+              <div className="text-3xl font-bold text-[hsl(var(--accent))]">100%</div>
+              <div className="text-sm text-[hsl(var(--text-muted))]">Accuracy</div>
             </div>
           </div>
         </motion.div>
