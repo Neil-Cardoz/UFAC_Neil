@@ -2,6 +2,7 @@
 import asyncio
 import logging
 import re
+import time
 from .fact_agent import extract_known_facts
 from .assumption_agent import detect_assumptions
 from .unknown_agent import detect_unknowns
@@ -9,6 +10,15 @@ from .confidence_agent import calculate_confidence
 from .decision_agent import generate_next_steps
 from .schema import UFACResponse
 from data.pm_kisan_rules import PM_KISAN_RULES
+from core.constants import (
+    MAX_STRING_LENGTH,
+    MAX_INCOME_VALUE,
+    CONFIDENCE_HIGH,
+    CONFIDENCE_MEDIUM,
+    CONFIDENCE_LOW,
+    RISK_HIGH_THRESHOLD,
+    RISK_MEDIUM_THRESHOLD,
+)
 
 logger = logging.getLogger(__name__)
 
