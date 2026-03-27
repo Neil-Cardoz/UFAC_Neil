@@ -19,8 +19,8 @@ Welcome to the project! We're glad you're here. Please read the following guidel
 1. **Fork** the repository to your own GitHub account.
 2. **Clone** your fork locally:
    ```bash
-   git clone https://github.com/<your-username>/<repo-name>.git
-   cd <repo-name>
+   git clone https://github.com/<your-username>/UFAC.git
+   cd UFAC
    ```
 3. **Add the upstream remote:**
    ```bash
